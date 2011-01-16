@@ -16,5 +16,6 @@ setup(name='irgsh-repo',
       maintainer='BlankOn Developers',
       maintainer_email='blankon-dev@googlegroups.com',
       entry_points={'console_scripts': ['irgsh-repo = irgsh_repo.main:main']},
-      install_requires=['setuptools', 'celery', 'amqplib'],
+      install_requires=['setuptools', 'celery', 'amqplib', 'poster'],
      )
+
