@@ -5,11 +5,20 @@ from subprocess import Popen, PIPE
 
 from celery.task import Task
 
+try:
+    from debian.deb822 import Changes
+except ImportError:
+    from debian_bundle.deb822 import Changes
+
 from irgsh_repo import manager
 from irgsh_repo.conf import settings
 
 class RepoRebuildError(Exception):
-    pass
+    def __init__(self, code, log):
+        self.code = code
+        self.log = log
+    def __str__(self):
+        return 'Code: %s' % self.code
 
 class RebuildRepo(Task):
     exchange = 'repo'
@@ -22,46 +31,57 @@ class RebuildRepo(Task):
         try:
             # Rebuild repo for each architecture
             for index, task_arch in enumerate(task_arch_list):
-                task_id, arch = tash_arch
-                changes = '%(package)s_%(version)s_%(arch)s.changes' % \
-                          {'arch': arch,
-                           'package': package,
-                           'version': version}
+                task_id, arch = task_arch
+
+                changes = '%s_%s_%s.changes' % (package, version, arch)
                 changes_file = os.path.join(settings.INCOMING, arch, changes)
-                self.rebuild_repo(spec_id, arch, changes_file, component, distribution)
+
+                if index == 0:
+                    # Install source
+                    dsc = '%s_%s.dsc' % (package, version)
+                    dsc_file = os.path.join(settings.INCOMING, arch, dsc)
+
+                    cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
+                          (settings.REPO_DIR, component,
+                           distribution, dsc_file)
+                    self.execute(cmd.split())
+
+                    # Install all packages
+                    cmd = 'reprepro -b %s -C %s include %s %s' % \
+                          (settings.REPO_DIR, component,
+                           distribution, changes_file)
+                    self.execute(cmd.split())
+
+                else:
+                    # Install binary packages only
+                    debs = []
+                    c = Changes(open(changes_file))
+                    for info in c['Files']:
+                        fname = info['name']
+                        if fname.endswith('_%s.deb' % arch):
+                            debs.append(info['name'])
+
+                    debs = [os.path.join(settings.INCOMING, arch, deb)
+                            for deb in debs]
+                    cmd = 'reprepro -b %s -C %s includedeb %s' % \
+                          (settings.REPO_DIR, component, distribution)
+                    cmd = cmd.split() + debs
+                    self.execute(cmd)
+
+                manager.update_status(spec_id, manager.SUCCESS, arch)
 
             # Report all done
             manager.update_status(spec_id, manager.COMPLETE)
 
         except RepoRebuildError:
-            pass
+            manager.update_status(spec_id, manager.FAILURE, arch)
 
-    def rebuild_repo(self, spec_id, arch, changes_file, component, distribution):
-        try:
-            # Logger
-            fd, fname = tempfile.mkstemp()
-            f = gzip.open(fname, 'wb')
+    def execute(self, cmd):
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
 
-            # Build repo
-            cmd = 'reprepro -b %(base)s -C %(component)s include %(dist)s %(changes)s' % \
-                  {'base': settings.REPO_DIR,
-                   'component': component,
-                   'dist': distribution,
-                   'changes': changes_file}
-            p = Popen(cmd.split(), stdout=f, stderr=f)
-            p.communicate()
-
-            if p.returncode == 0:
-                manager.update_status(spec_id, manager.SUCCESS, arch)
-
-            else:
-                manager.update_status(spec_id, manager.FAILURE, arch)
-                raise RepoRebuildError
-
-        finally:
-            f.close()
-            self.upload_log(spec_id, arch, fname)
-            os.unlink(fname)
+        if p.returncode != 0:
+            raise RepoBuildError(p.returncode, err)
 
     def upload_log(self, spec_id, arch, fname):
         manager.send_log(spec_id, fname, arch)
