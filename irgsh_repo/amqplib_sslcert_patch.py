@@ -10,11 +10,13 @@ class SSLTransportWithCert(transport.SSLTransport):
 
     def _setup_transport(self):
         if transport.HAVE_PY26_SSL:
+            import ssl
             self.sslobj = ssl.wrap_socket(self.sock,
                                           keyfile=self.ssl_key,
                                           certfile=self.ssl_cert)
             self.sslobj.do_handshake()
         else:
+            import socket
             self.sslobj = socket.ssl(self.sock,
                                      keyfile=self.ssl_key,
                                      certfile=self.ssl_cert)
