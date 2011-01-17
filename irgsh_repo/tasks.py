@@ -13,7 +13,7 @@ except ImportError:
 from irgsh_repo import manager
 from irgsh_repo.conf import settings
 
-class RepoRebuildError(Exception):
+class RepoBuildError(Exception):
     def __init__(self, code, log):
         self.code = code
         self.log = log
@@ -25,7 +25,7 @@ class RebuildRepo(Task):
     ignore_result = True
 
     def run(self, spec_id, package, version,
-            distribution, component, task_arch_list):
+            distribution, component, task_arch_list,
             arch_changes_list):
 
         try:
@@ -73,7 +73,7 @@ class RebuildRepo(Task):
             # Report all done
             manager.update_status(spec_id, manager.COMPLETE)
 
-        except RepoRebuildError:
+        except RepoBuildError:
             manager.update_status(spec_id, manager.FAILURE, arch)
 
     def execute(self, cmd):

@@ -22,7 +22,7 @@ def update_status(spec_id, status, arch=None):
 
 def send_log(spec_id, fname, arch):
     host = settings.SERVER.rstrip('/')
-    url = URL_BUILD_LOG % {'host': host, 'task_id': task_id}
+    url = URL_LOG % {'host': host, 'spec_id': spec_id}
 
     param = {'log': open(fname, 'rb'),
              'arch': arch}
