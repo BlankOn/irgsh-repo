@@ -9,7 +9,6 @@ SUCCESS = 0
 COMPLETE = 1
 
 URL_UPDATE_STATUS = '%(host)s/build/%(spec_id)s/repo/status/'
-URL_LOG = '%(host)s/build/%(spec_id)s/repo/log/'
 
 def update_status(spec_id, status, arch=None):
     host = settings.SERVER.rstrip('/')
@@ -18,13 +17,5 @@ def update_status(spec_id, status, arch=None):
     param = {'status': status}
     if arch is not None:
         param['arch'] = arch
-    send_message(url, param)
-
-def send_log(spec_id, fname, arch):
-    host = settings.SERVER.rstrip('/')
-    url = URL_LOG % {'host': host, 'spec_id': spec_id}
-
-    param = {'log': open(fname, 'rb'),
-             'arch': arch}
     send_message(url, param)
 

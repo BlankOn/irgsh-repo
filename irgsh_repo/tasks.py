@@ -83,6 +83,3 @@ class RebuildRepo(Task):
         if p.returncode != 0:
             raise RepoBuildError(p.returncode, err)
 
-    def upload_log(self, spec_id, arch, fname):
-        manager.send_log(spec_id, fname, arch)
-
