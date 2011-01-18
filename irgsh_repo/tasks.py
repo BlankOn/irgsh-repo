@@ -25,8 +25,7 @@ class RebuildRepo(Task):
     ignore_result = True
 
     def run(self, spec_id, package, version,
-            distribution, component, task_arch_list,
-            arch_changes_list):
+            distribution, component, task_arch_list):
 
         try:
             # Rebuild repo for each architecture
