@@ -49,13 +49,13 @@ def init_settings(settings):
     settings.CELERY_QUEUES = {
         queue: {
             'exchange': 'repo',
-            'exchange_type': 'topic',
+            'exchange_type': 'direct',
             'binding_key': 'repo',
         }
     }
     settings.CELERY_DEFAULT_QUEUE = queue
     settings.CELERY_DEFAULT_EXCHANGE = 'repo'
-    settings.CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
+    settings.CELERY_DEFAULT_EXCHANGE_TYPE = 'direct'
     settings.CELERY_DEFAULT_ROUTING_KEY = 'repo'
 
     imports = getattr(settings, 'CELERY_IMPORTS', ())
