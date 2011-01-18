@@ -68,9 +68,10 @@ class RebuildRepo(Task):
         except RepoBuildError:
             manager.update_status(spec_id, manager.FAILURE, arch)
 
-    def execute(self, cmd):
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
+    def execute_cmd(self, cmd):
+        p = Popen(cmd) #, stdout=PIPE, stderr=PIPE)
+        p.communicate()
+        err = ''
 
         if p.returncode != 0:
             raise RepoBuildError(p.returncode, err)
