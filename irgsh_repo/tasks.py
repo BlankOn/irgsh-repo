@@ -28,44 +28,37 @@ class RebuildRepo(Task):
             distribution, component, task_arch_list):
 
         try:
-            # Rebuild repo for each architecture
+            # Install source
+            dsc = '%s_%s.dsc' % (package, version)
+            dsc_file = os.path.join(settings.INCOMING, 'source', dsc)
+            cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
+                  (settings.REPO_DIR, component,
+                   distribution, dsc_file)
+            self.execute_cmd(cmd.split())
+
+            # Add deb for each architecture
             for index, task_arch in enumerate(task_arch_list):
                 task_id, arch = task_arch
 
                 changes = '%s_%s_%s.changes' % (package, version, arch)
                 changes_file = os.path.join(settings.INCOMING, arch, changes)
 
-                if index == 0:
-                    # Install source
-                    dsc = '%s_%s.dsc' % (package, version)
-                    dsc_file = os.path.join(settings.INCOMING, arch, dsc)
+                # Install binary packages only
+                debs = []
+                c = Changes(open(changes_file))
+                for info in c['Files']:
+                    fname = info['name']
+                    if not fname.endswith('deb'):
+                        continue
+                    if index == 0 or fname.endswith('_%s.deb' % arch):
+                        debs.append(info['name'])
 
-                    cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
-                          (settings.REPO_DIR, component,
-                           distribution, dsc_file)
-                    self.execute(cmd.split())
-
-                    # Install all packages
-                    cmd = 'reprepro -b %s -C %s include %s %s' % \
-                          (settings.REPO_DIR, component,
-                           distribution, changes_file)
-                    self.execute(cmd.split())
-
-                else:
-                    # Install binary packages only
-                    debs = []
-                    c = Changes(open(changes_file))
-                    for info in c['Files']:
-                        fname = info['name']
-                        if fname.endswith('_%s.deb' % arch):
-                            debs.append(info['name'])
-
-                    debs = [os.path.join(settings.INCOMING, arch, deb)
-                            for deb in debs]
-                    cmd = 'reprepro -b %s -C %s includedeb %s' % \
-                          (settings.REPO_DIR, component, distribution)
-                    cmd = cmd.split() + debs
-                    self.execute(cmd)
+                debs = [os.path.join(settings.INCOMING, arch, deb)
+                        for deb in debs]
+                cmd = 'reprepro -b %s -C %s includedeb %s' % \
+                      (settings.REPO_DIR, component, distribution)
+                cmd = cmd.split() + debs
+                self.execute_cmd(cmd)
 
                 manager.update_status(spec_id, manager.SUCCESS, arch)
 
