@@ -55,10 +55,11 @@ class RebuildRepo(Task):
 
                 debs = [os.path.join(settings.INCOMING, arch, deb)
                         for deb in debs]
-                cmd = 'reprepro -b %s -C %s includedeb %s' % \
-                      (settings.REPO_DIR, component, distribution)
-                cmd = cmd.split() + debs
-                self.execute_cmd(cmd)
+                if len(debs) > 0:
+                    cmd = 'reprepro -b %s -C %s includedeb %s' % \
+                          (settings.REPO_DIR, component, distribution)
+                    cmd = cmd.split() + debs
+                    self.execute_cmd(cmd)
 
                 manager.update_status(spec_id, manager.SUCCESS, arch)
 
