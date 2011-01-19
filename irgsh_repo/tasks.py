@@ -27,6 +27,7 @@ class RebuildRepo(Task):
     def run(self, spec_id, package, version,
             distribution, component, task_arch_list):
 
+        arch = None
         try:
             # Install source
             dsc = '%s_%s.dsc' % (package, version)
