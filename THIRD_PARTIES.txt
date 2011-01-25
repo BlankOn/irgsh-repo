@@ -1,0 +1,5 @@
+py-amqplib
+Python client for the Advanced Message Queuing Procotol (AMQP)
+http://code.google.com/p/py-amqplib/
+License: GNU Lesser General Public License
+
