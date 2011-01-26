@@ -9,6 +9,7 @@ SUCCESS = 0
 COMPLETE = 1
 
 URL_UPDATE_STATUS = '%(host)s/build/%(spec_id)s/repo/status/'
+URL_PING = '%(host)s/worker/+ping/'
 
 def update_status(spec_id, status, arch=None):
     host = settings.SERVER.rstrip('/')
@@ -17,5 +18,12 @@ def update_status(spec_id, status, arch=None):
     param = {'status': status}
     if arch is not None:
         param['arch'] = arch
+    send_message(url, param)
+
+def ping():
+    host = settings.SERVER.rstrip('/')
+    url = URL_PING % {'host': host}
+
+    param = {}
     send_message(url, param)
 

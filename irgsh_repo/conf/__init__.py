@@ -59,7 +59,8 @@ def init_settings(settings):
     settings.CELERY_DEFAULT_ROUTING_KEY = 'repo'
 
     imports = getattr(settings, 'CELERY_IMPORTS', ())
-    settings.CELERY_IMPORTS = ('irgsh_repo.tasks',) + imports
+    task_modules = ('irgsh_repo.tasks', 'irgsh_repo.control',)
+    settings.CELERY_IMPORTS = task_modules + imports
 
 def load_config(config_files):
     # Load config
