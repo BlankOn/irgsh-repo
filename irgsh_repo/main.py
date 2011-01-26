@@ -1,9 +1,6 @@
 import os
 
 def main():
-    from . import amqplib_sslcert_patch
-    amqplib_sslcert_patch.use_configured_cert()
-
     os.environ.setdefault('IRGSH_REPO_CONFIG', 'irgsh-repo.conf')
     os.environ.setdefault('CELERY_LOADER', 'irgsh_repo.loader.IrgshRepoLoader')
 
