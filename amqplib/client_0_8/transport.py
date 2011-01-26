@@ -130,6 +130,11 @@ class SSLTransport(_AbstractTransport):
     Transport that works over SSL
 
     """
+    def __init__(self, host, connect_timeout, keyfile=None, certfile=None):
+        self.keyfile = keyfile
+        self.certfile = certfile
+        super(SSLTransport, self).__init__(host, connect_timeout)
+
     def _setup_transport(self):
         """
         Wrap the socket in an SSL object, either the
@@ -138,10 +143,14 @@ class SSLTransport(_AbstractTransport):
 
         """
         if HAVE_PY26_SSL:
-            self.sslobj = ssl.wrap_socket(self.sock)
+            self.sslobj = ssl.wrap_socket(self.sock,
+                                          keyfile=self.keyfile,
+                                          certfile=self.certfile)
             self.sslobj.do_handshake()
         else:
-            self.sslobj = socket.ssl(self.sock)
+            self.sslobj = socket.ssl(self.sock,
+                                     keyfile=self.keyfile,
+                                     certfile=self.certfile)
 
 
     def _read(self, n):
@@ -214,7 +223,15 @@ def create_transport(host, connect_timeout, ssl=False):
     select and create a subclass of _AbstractTransport.
 
     """
+    try:
+        from irgsh_repo.conf import settings
+        keyfile = settings.SSL_KEY
+        certfile = settings.SSL_CERT
+        ssl = keyfile is not None and certfile is not None
+    except ImportError:
+        pass
+
     if ssl:
-        return SSLTransport(host, connect_timeout)
+        return SSLTransport(host, connect_timeout, keyfile, certfile)
     else:
         return TCPTransport(host, connect_timeout)
