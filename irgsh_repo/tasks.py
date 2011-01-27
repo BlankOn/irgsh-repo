@@ -31,7 +31,7 @@ class RebuildRepo(Task):
         try:
             # Install source
             dsc = '%s_%s.dsc' % (package, version)
-            dsc_file = os.path.join(settings.INCOMING, 'source', dsc)
+            dsc_file = os.path.join(settings.INCOMING, str(spec_id), 'source', dsc)
             cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
                   (settings.REPO_DIR, component,
                    distribution, dsc_file)
@@ -42,7 +42,7 @@ class RebuildRepo(Task):
                 task_id, arch = task_arch
 
                 changes = '%s_%s_%s.changes' % (package, version, arch)
-                changes_file = os.path.join(settings.INCOMING, arch, changes)
+                changes_file = os.path.join(settings.INCOMING, str(spec_id), task_id, changes)
 
                 # Install binary packages only
                 debs = []
