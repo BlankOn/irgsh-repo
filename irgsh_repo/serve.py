@@ -49,12 +49,12 @@ class ScpServe(object):
         return None
 
     def _handle_builder(self, name):
-        spec_id, task_id = self._parse_task_id(self._get_target())
+        task_id = self._parse_task_id(self._get_target())
         info = manager.get_task_info(task_id)
 
         assert info['builder'] == name, 'Invalid builder'
-        assert info['spec_id'] == spec_id, 'Invalid target'
 
+        spec_id = info['spec_id']
         path = os.path.join(settings.INCOMING, str(spec_id), task_id)
         if not os.path.exists(path):
             os.makedirs(path)
@@ -80,10 +80,10 @@ class ScpServe(object):
         return args[0]
 
     def _parse_task_id(self, target):
-        p = re.compile(r'^incoming/(\d+)/(\d+\.\d+\.\d+)/?$')
+        p = re.compile(r'^incoming/(\d+\.\d+\.\d+)/?$')
         m = p.match(target)
         if m:
-            return int(m.group(1)), m.group(2)
+            return m.group(1)
         raise ValueError, 'Invalid target'
 
     def _parse_spec_id(self, target):
