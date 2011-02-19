@@ -1,7 +1,7 @@
 import tempfile
 import os
 import gzip
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 from celery.task import Task
 
@@ -27,6 +27,7 @@ class RebuildRepo(Task):
     def run(self, spec_id, package, version,
             distribution, component, task_arch_list):
 
+        repo_log = []
         arch = None
         try:
             # Install source
@@ -35,7 +36,7 @@ class RebuildRepo(Task):
             cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
                   (settings.REPO_DIR, component,
                    distribution, dsc_file)
-            self.execute_cmd(cmd.split())
+            self.execute_cmd(cmd.split(), repo_log)
 
             # Add deb for each architecture
             for index, task_arch in enumerate(task_arch_list):
@@ -63,7 +64,7 @@ class RebuildRepo(Task):
                     cmd = 'reprepro -b %s -C %s includedeb %s' % \
                           (settings.REPO_DIR, component, distribution)
                     cmd = cmd.split() + debs
-                    self.execute_cmd(cmd)
+                    self.execute_cmd(cmd, repo_log)
 
                 manager.update_status(spec_id, manager.SUCCESS, arch)
 
@@ -73,11 +74,35 @@ class RebuildRepo(Task):
         except RepoBuildError:
             manager.update_status(spec_id, manager.FAILURE, arch)
 
-    def execute_cmd(self, cmd):
-        p = Popen(cmd) #, stdout=PIPE, stderr=PIPE)
-        p.communicate()
+        finally:
+            self.send_log(spec_id, repo_log)
+
+    def execute_cmd(self, cmd, repo_log):
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        stdout, stderr = p.communicate()
         err = ''
+
+        repo_log.append((cmd, p.returncode, stdout))
 
         if p.returncode != 0:
             raise RepoBuildError(p.returncode, err)
+
+    def send_log(self, spec_id, repo_log):
+        try:
+            logfile, fd = tempfile.mkstemp('-repo-log')
+            f = gzip.open(logfile, 'wb')
+
+            for cmd, ret, log in repo_log:
+                f.write('# command: %s\n' % cmd)
+                f.write('# return: %s\n' % ret)
+                f.write(log)
+                f.write('\n\n')
+
+            f.close()
+
+            manager.send_log(spec_id, logfile)
+
+        finally:
+            if os.path.exists(logfile):
+                os.unlink(logfile)
 
