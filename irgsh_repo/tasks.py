@@ -49,9 +49,12 @@ class RebuildRepo(Task):
                 c = Changes(open(changes_file))
                 for info in c['Files']:
                     fname = info['name']
-                    if not fname.endswith('deb'):
+                    if not (fname.endswith('.deb') or fname.endswith('.udeb')):
                         continue
-                    if index == 0 or fname.endswith('_%s.deb' % arch):
+                    if index == 0 or fname.endswith('_%s.deb' % arch) \
+                       or fname.endswith('_%s.udeb' % arch):
+                        # Only first listed architecture installs
+                        # architecture independent (*_all.deb) packages
                         debs.append(info['name'])
 
                 debs = [os.path.join(settings.INCOMING, arch, deb)
