@@ -33,7 +33,7 @@ class RebuildRepo(Task):
             # Install source
             dsc = '%s_%s.dsc' % (package, version)
             dsc_file = os.path.join(settings.INCOMING, str(spec_id), 'source', dsc)
-            cmd = 'reprepro -b %s -C %s includedsc %s %s' % \
+            cmd = 'reprepro -VVV -b %s -C %s includedsc %s %s' % \
                   (settings.REPO_DIR, component,
                    distribution, dsc_file)
             self.execute_cmd(cmd.split(), repo_log)
@@ -61,7 +61,7 @@ class RebuildRepo(Task):
                 debs = [os.path.join(settings.INCOMING, arch, deb)
                         for deb in debs]
                 if len(debs) > 0:
-                    cmd = 'reprepro -b %s -C %s includedeb %s' % \
+                    cmd = 'reprepro -VVV -b %s -C %s includedeb %s' % \
                           (settings.REPO_DIR, component, distribution)
                     cmd = cmd.split() + debs
                     self.execute_cmd(cmd, repo_log)
