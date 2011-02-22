@@ -87,7 +87,7 @@ class ScpServe(object):
         raise ValueError, 'Invalid target'
 
     def _parse_spec_id(self, target):
-        p = re.compile(r'^incoming/(\d+)/source/?$')
+        p = re.compile(r'^incoming/(\d+)/?$')
         m = p.match(target)
         if m:
             return int(m.group(1))
