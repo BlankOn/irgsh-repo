@@ -8,3 +8,5 @@ LOCAL_DATABASE = 'sqlite:///irgsh-repo.db'
 SSL_CERT = None
 SSL_KEY = None
 
+AUTHORIZED_KEYS = '~/.ssh/authorized_keys'
+

@@ -26,6 +26,7 @@ CONFIG_MAPPING = {
         'workers': 'CELERYD_CONCURRENCY',
         'repo-dir': 'REPO_DIR',
         'irgsh-repo-serve': 'IRGSH_REPO_SERVE',
+        'authorized-keys': 'AUTHORIZED_KEYS',
     },
     'queue': {
         'host': 'BROKER_HOST',
