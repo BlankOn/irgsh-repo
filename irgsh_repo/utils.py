@@ -1,5 +1,11 @@
 import urllib2
 import urllib
+import json
+import os
+import re
+import shutil
+import sys
+
 
 from irgsh_repo.conf import settings
 
@@ -51,4 +57,61 @@ def send_message(url, param=None):
     # Create request
     request = urllib2.Request(url, data, headers)
     return opener.open(request).read()
+
+def update_authorized_keys():
+    from irgsh_repo.manager import get_keys
+
+    # Create keys
+
+    data = json.loads(get_keys())
+    assert data['status'] == 'ok', 'Invalid result'
+
+    command = settings.IRGSH_REPO_SERVE
+    res = ['### IRGSH-REPO BEGIN ### DO NOT EDIT ###']
+    for item in data['keys']:
+        worker_type = item['type']
+        name = item['name']
+        key = item['key']
+        res.append('command="%s %s %s" %s' % \
+                   (command, worker_type, name, key))
+    res.append('### IRGSH-REPO END ###')
+
+    content = '\n'.join(res)
+
+    # Insert into authorized_keys
+
+    authorized_keys = os.path.expanduser(settings.AUTHORIZED_KEYS)
+
+    dirname = os.path.dirname(authorized_keys)
+    if dirname != '' and not os.path.exists(dirname):
+        os.makedirs(dirname)
+        os.chmod(dirname, 0700)
+
+    current = []
+    if os.path.exists(authorized_keys):
+        current = open(authorized_keys).read().splitlines()
+
+    pos = [0, 0]
+    inside = False
+    for index, line in enumerate(current):
+        if line.startswith('### IRGSH-REPO BEGIN'):
+            pos[0] = index
+        elif line.startswith('### IRGSH-REPO END'):
+            pos[1] = index + 1
+    current[pos[0]:pos[1]] = [content]
+
+    # Create backup
+
+    backup = '%s.bak' % authorized_keys
+
+    if os.path.exists(authorized_keys):
+        shutil.copyfile(authorized_keys, backup)
+
+    # Write new content
+
+    f = open(authorized_keys, 'w')
+    f.write('\n'.join(current))
+    f.close()
+
+    return len(data['keys']), authorized_keys
 
