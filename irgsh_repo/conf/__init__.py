@@ -25,6 +25,7 @@ CONFIG_MAPPING = {
         'archs': 'ARCHITECTURES',
         'workers': 'CELERYD_CONCURRENCY',
         'repo-dir': 'REPO_DIR',
+        'irgsh-repo-serve': 'IRGSH_REPO_SERVE',
     },
     'queue': {
         'host': 'BROKER_HOST',
@@ -35,7 +36,7 @@ CONFIG_MAPPING = {
     },
 }
 CONFIG_REQUIRED = {
-    'irgsh': ['server', 'archs', 'incoming', 'repo_dir'],
+    'irgsh': ['server', 'archs', 'incoming', 'repo_dir', 'irgsh-repo-serve'],
     'queue': ['host', 'vhost'],
 }
 CONFIG_TYPE_MAPPER = {
