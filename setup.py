@@ -16,7 +16,8 @@ setup(name='irgsh-repo',
       maintainer='BlankOn Developers',
       maintainer_email='blankon-dev@googlegroups.com',
       entry_points={'console_scripts': ['irgsh-repo = irgsh_repo.main:main',
-                                        'irgsh-upload-serve = irgsh_repo.serve:main']},
+                                        'irgsh-upload-serve = irgsh_repo.serve:main',
+                                        'irgsh-update-keys = irgsh_repo.update_keys:main']},
       install_requires=['setuptools', 'celery<2.2', 'amqplib', 'poster', 'sqlalchemy'],
      )
 

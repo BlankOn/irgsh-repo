@@ -13,6 +13,7 @@ URL_PING = '%(host)s/worker/+ping/'
 URL_SPEC_INFO = '%(host)s/build/%(spec_id)s/info/'
 URL_TASK_INFO = '%(host)s/task/%(task_id)s/info/'
 URL_SUBMIT_LOG = '%(host)s/build/%(spec_id)s/repo/log/'
+URL_KEYS = '%(host)s/data/authorized_keys.json'
 
 def update_status(spec_id, status, arch=None):
     host = settings.SERVER.rstrip('/')
@@ -48,4 +49,10 @@ def send_log(spec_id, logfile):
 
     param = {'log': open(logfile)}
     send_message(url, param)
+
+def get_keys():
+    host = settings.SERVER.rstrip('/')
+    url = URL_KEYS % {'host': host}
+
+    return send_message(url)
 
