@@ -43,19 +43,41 @@ class ScpServe(object):
         return None
 
     def _handle_builder(self, name):
-        task_id = self._parse_task_id(self._get_target())
-        info = manager.get_task_info(task_id)
+        cmd = self.cmd.split()[0]
 
-        assert info['builder'] == name, 'Invalid builder'
+        # dput uploads files using scp and then chmods them
+        assert cmd in ['scp', 'chmod'], 'Invalid command'
 
-        spec_id = info['spec_id']
-        path = os.path.join(settings.INCOMING, str(spec_id), task_id)
-        if not os.path.exists(path):
-            os.makedirs(path)
+        if cmd == 'scp':
+            task_id = self._parse_task_id(self._get_target())
+            info = manager.get_task_info(task_id)
 
-        return self._rebuild_cmd(path)
+            assert info['builder'] == name, 'Invalid builder'
+
+            spec_id = info['spec_id']
+            path = os.path.join(settings.INCOMING, str(spec_id), task_id)
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            return self._rewrite_scp(path)
+
+        elif cmd == 'chmod':
+            task_id, mode, files = self._parse_chmod_cmd()
+            info = manager.get_task_info(task_id)
+
+            assert info['builder'] == name, 'Invalid builder'
+
+            spec_id = info['spec_id']
+            path = os.path.join(settings.INCOMING, str(spec_id), task_id)
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            return self._rewrite_chmod(mode, files, path)
 
     def _handle_taskinit(self, worker_id):
+        cmd = self.cmd.split()[0]
+        assert cmd == 'scp', 'Invalid command'
+
         spec_id = self._parse_spec_id(self._get_target())
         info = manager.get_spec_info(spec_id)
 
@@ -63,9 +85,9 @@ class ScpServe(object):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        return self._rebuild_cmd(path)
+        return self._rewrite_scp(path)
 
-    def _parse_cmd(self):
+    def _parse_scp(self):
         args = self.cmd.split()[1:]
 
         # from scp.c of openssh 5.3p1
@@ -73,8 +95,31 @@ class ScpServe(object):
 
         return optlist, args
 
-    def _rebuild_cmd(self, path):
-        optlist, args = self._parse_cmd()
+    def _parse_chmod_cmd(self):
+        p = self.cmd.split()
+        mode = p[1]
+        files = p[2:]
+
+        items = []
+
+        # These files have to be in `incoming/[task_id]/[filename]` format
+        pf = re.compile(r'^incoming/(\d+\.\d+\.\d+)/([^/]+)$')
+        task_id = None
+        for fname in files:
+            m = pf.match(fname)
+            assert m is not None, 'Invalid file name: %s' % fname
+
+            tid, fn = m.groups()
+            assert task_id is None or task_id == tid, \
+                   'Different task id: %s (%s)' % (task_id, fname)
+            task_id = tid
+
+            items.append(fn)
+
+        return task_id, mode, items
+
+    def _rewrite_scp(self, path):
+        optlist, args = self._parse_scp()
 
         cmd = ['scp']
         for k, v in optlist:
@@ -86,8 +131,16 @@ class ScpServe(object):
         cmd = ' '.join(cmd)
         return cmd
 
+    def _rewrite_chmod(self, mode, files, path):
+        cmd = ['chmod', mode]
+        for fname in files:
+            cmd.append(os.path.join(path, fname))
+
+        cmd = ' '.join(cmd)
+        return cmd
+
     def _get_target(self):
-        optlist, args = self._parse_cmd()
+        optlist, args = self._parse_scp()
 
         assert len(args) == 1, 'Unable to get target'
 
