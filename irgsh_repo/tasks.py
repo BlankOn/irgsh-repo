@@ -89,7 +89,7 @@ class RebuildRepo(Task):
 
     def send_log(self, spec_id, repo_log):
         try:
-            logfile, fd = tempfile.mkstemp('-repo-log')
+            fd, logfile = tempfile.mkstemp('-repo-log')
             f = gzip.open(logfile, 'wb')
 
             for cmd, ret, log in repo_log:
