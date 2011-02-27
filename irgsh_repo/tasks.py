@@ -58,7 +58,7 @@ class RebuildRepo(Task):
                         # architecture independent (*_all.deb) packages
                         debs.append(info['name'])
 
-                debs = [os.path.join(settings.INCOMING, arch, deb)
+                debs = [os.path.join(settings.INCOMING, str(spec_id), task_id, deb)
                         for deb in debs]
                 if len(debs) > 0:
                     cmd = 'reprepro -VVV -b %s -C %s includedeb %s' % \
