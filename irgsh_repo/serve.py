@@ -14,8 +14,6 @@ class ScpServe(object):
 
     def start(self):
         try:
-            self._verify_cmd()
-
             newcmd = self._start()
             assert newcmd is not None, 'Unable to rebuild command'
 
@@ -24,10 +22,6 @@ class ScpServe(object):
             print >>sys.stderr, 'Error: %s' % e
             return False
         return True
-
-    def _verify_cmd(self):
-        p = self.cmd.split()
-        assert p[0] == 'scp', 'Not SCP'
 
     def _exec(self, cmd):
         p = Popen(cmd, shell=True)
