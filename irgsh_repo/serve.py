@@ -59,7 +59,7 @@ class ScpServe(object):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        return 'scp -d -t %s' % path
+        return self._rebuild_cmd(path)
 
     def _handle_taskinit(self, worker_id):
         spec_id = self._parse_spec_id(self._get_target())
@@ -69,11 +69,31 @@ class ScpServe(object):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        return 'scp -d -t %s' % path
+        return self._rebuild_cmd(path)
+
+    def _parse_cmd(self):
+        args = self.cmd.split()[1:]
+
+        # from scp.c of openssh 5.3p1
+        optlist, args = getopt.getopt(args, 'dfl:prtvBCc:i:P:q1246S:o:F:')
+
+        return optlist, args
+
+    def _rebuild_cmd(self, path):
+        optlist, args = self._parse_cmd()
+
+        cmd = ['scp']
+        for k, v in optlist:
+            cmd.append(k)
+            if v != '':
+                cmd.append(v)
+        cmd.append(path)
+
+        cmd = ' '.join(cmd)
+        return cmd
 
     def _get_target(self):
-        args = self.cmd.split()[1:]
-        optlist, args = getopt.getopt(args, 'dtf')
+        optlist, args = self._parse_cmd()
 
         assert len(args) == 1, 'Unable to get target'
 
