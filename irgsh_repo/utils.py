@@ -66,7 +66,7 @@ def update_authorized_keys():
     data = json.loads(get_keys())
     assert data['status'] == 'ok', 'Invalid result'
 
-    command = settings.IRGSH_REPO_SERVE
+    command = settings.IRGSH_UPLOAD_SERVE
     res = ['### IRGSH-REPO BEGIN ### DO NOT EDIT ###']
     for item in data['keys']:
         worker_type = item['type']
