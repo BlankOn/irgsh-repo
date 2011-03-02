@@ -6,7 +6,6 @@ def main():
 
     import socket
     from celery.bin import celeryd
-    from celery.bin.celeryd import multiprocessing
     from irgsh_repo.conf import settings
 
     class WorkerCommand(celeryd.WorkerCommand):
@@ -17,7 +16,7 @@ def main():
                     opt.default = '%s.repo' % socket.gethostname()
             return opts
 
-    multiprocessing.freeze_support()
+    celeryd.freeze_support()
     worker = WorkerCommand()
     worker.execute_from_commandline()
 
