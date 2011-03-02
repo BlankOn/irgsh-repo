@@ -18,7 +18,6 @@ setup(name='irgsh-repo',
       entry_points={'console_scripts': ['irgsh-repo = irgsh_repo.main:main',
                                         'irgsh-upload-serve = irgsh_repo.serve:main',
                                         'irgsh-update-keys = irgsh_repo.update_keys:main']},
-      install_requires=['setuptools', 'celery<2.2', 'amqplib', 'poster',
-                        'sqlalchemy', 'python-debian'],
+      install_requires=['setuptools', 'celery<2.2', 'poster', 'python-debian'],
      )
 
