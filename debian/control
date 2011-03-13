@@ -1,0 +1,12 @@
+Source: irgsh-repo
+Section: python
+Priority: optional
+Maintainer: BlankOn Developers <blankon-dev@googlegroups.com>
+Build-Depends: debhelper (>= 5.0.37.2), python (>= 2.5), python-setuptools
+
+Package: irgsh-repo
+Architecture: all
+Depends: ${python:Depends}, reprepro, openssh-client, python-debian, python-poster, python-celery (>= 2.2)
+Description: Irgsh Repository Builder
+ Irgsh Repository Builder
+
