@@ -71,7 +71,7 @@ class RebuildRepo(Task):
             # Report all done
             manager.update_status(spec_id, manager.COMPLETE)
 
-        except RepoBuildError:
+        except (RepoBuildError, StandardError):
             manager.update_status(spec_id, manager.FAILURE, arch)
 
         finally:
