@@ -1,5 +1,8 @@
 import urllib2
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from irgsh_repo.conf import settings
 from irgsh_repo.utils import send_message

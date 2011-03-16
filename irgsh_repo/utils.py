@@ -1,11 +1,13 @@
 import urllib2
 import urllib
-import json
 import os
 import re
 import shutil
 import sys
-
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from irgsh_repo.conf import settings
 
