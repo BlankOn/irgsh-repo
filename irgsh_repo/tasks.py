@@ -46,25 +46,36 @@ class RebuildRepo(Task):
                 changes_file = os.path.join(settings.INCOMING, str(spec_id), task_id, changes)
 
                 # Install binary packages only
-                debs = []
+                files = {'.deb': [], '.udeb': []}
                 c = Changes(open(changes_file))
                 for info in c['Files']:
                     fname = info['name']
-                    if not (fname.endswith('.deb') or fname.endswith('.udeb')):
+                    name, ext = os.path.splitext(fname)
+
+                    # Only accept .deb and .udeb
+                    if not ext in ['.deb', '.udeb']:
                         continue
+
                     if index == 0 or fname.endswith('_%s.deb' % arch) \
                        or fname.endswith('_%s.udeb' % arch):
                         # Only first listed architecture installs
-                        # architecture independent (*_all.deb) packages
-                        debs.append(info['name'])
+                        # architecture independent (*_all.deb/*_all.udeb) packages
+                        files[ext].append(fname)
 
-                debs = [os.path.join(settings.INCOMING, str(spec_id), task_id, deb)
-                        for deb in debs]
-                if len(debs) > 0:
-                    cmd = 'reprepro -VVV -b %s -C %s includedeb %s' % \
-                          (settings.REPO_DIR, component, distribution)
-                    cmd = cmd.split() + debs
-                    self.execute_cmd(cmd, repo_log)
+                for ext in files:
+                    action = 'includedeb'
+                    if ext == '.udeb':
+                        action = 'includeudeb'
+
+                    debs = [os.path.join(settings.INCOMING, str(spec_id),
+                                         task_id, deb)
+                            for deb in files[ext]]
+                    if len(debs) > 0:
+
+                        cmd = 'reprepro -VVV -b %s -C %s %s %s' % \
+                              (settings.REPO_DIR, component, action, distribution)
+                        cmd = cmd.split() + debs
+                        self.execute_cmd(cmd, repo_log)
 
                 manager.update_status(spec_id, manager.SUCCESS, arch)
 
