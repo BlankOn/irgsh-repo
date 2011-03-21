@@ -84,7 +84,8 @@ class RebuildRepo(Task):
             # Report all done
             manager.update_status(spec_id, manager.COMPLETE)
 
-        except (RepoBuildError, StandardError):
+        except (RepoBuildError, StandardError), e:
+            self.get_logger().error('[%s] %s' % (spec_id, str(e)))
             manager.update_status(spec_id, manager.FAILURE, arch)
 
         finally:
@@ -94,6 +95,10 @@ class RebuildRepo(Task):
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
         stdout, stderr = p.communicate()
         err = ''
+
+        log = self.get_logger()
+        log.debug('Executed: %s' % cmd)
+        log.debug('  return: %s' % p.returncode)
 
         repo_log.append((cmd, p.returncode, stdout))
 
