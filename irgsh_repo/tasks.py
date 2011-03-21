@@ -27,11 +27,13 @@ class RebuildRepo(Task):
     def run(self, spec_id, package, version,
             distribution, component, task_arch_list):
 
+        version = version.split(':')[-1]
+
         repo_log = []
         arch = None
         try:
             # Install source
-            dsc = '%s_%s.dsc' % (package, version.split(':')[-1])
+            dsc = '%s_%s.dsc' % (package, version)
             dsc_file = os.path.join(settings.INCOMING, str(spec_id), 'source', dsc)
             cmd = 'reprepro -VVV -b %s -C %s includedsc %s %s' % \
                   (settings.REPO_DIR, component,
