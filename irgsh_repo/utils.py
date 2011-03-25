@@ -66,7 +66,8 @@ def update_authorized_keys():
     # Create keys
 
     data = json.loads(get_keys())
-    assert data['status'] == 'ok', 'Invalid result'
+    if data['status'] != 'ok':
+        raise ValueError, 'Invalid result'
 
     command = settings.IRGSH_UPLOAD_SERVE
     res = ['### IRGSH-REPO BEGIN ### DO NOT EDIT ###']

@@ -15,7 +15,8 @@ class ScpServe(object):
     def start(self):
         try:
             newcmd = self._start()
-            assert newcmd is not None, 'Unable to rebuild command'
+            if newcmd is None:
+                raise ValueError, 'Unable to rebuild command'
 
             self._exec(newcmd)
         except Exception, e:
@@ -27,13 +28,16 @@ class ScpServe(object):
         p = Popen(cmd, shell=True)
         p.communicate()
 
-        assert p.returncode == 0, 'Return code not zero'
+        if p.returncode != 0:
+            raise ValueError, 'Execution failed'
 
     def _start(self):
-        assert len(self.argv) == 3, 'Missing argument'
+        if len(self.argv) != 3:
+            raise ValueError, 'Missing argument'
         client_type, identifier = self.argv[1:]
 
-        assert client_type in ['builder', 'taskinit'], 'Unknown client type'
+        if not client_type in ['builder', 'taskinit']:
+            raise ValueError, 'Unknown client type: %s' % client_type
         if client_type == 'builder':
             return self._handle_builder(identifier)
 
@@ -46,13 +50,15 @@ class ScpServe(object):
         cmd = self.cmd.split()[0]
 
         # dput uploads files using scp and then chmods them
-        assert cmd in ['scp', 'chmod'], 'Invalid command'
+        if not cmd in ['scp', 'chmod']:
+            raise ValueError, 'Invalid command: %s' % cmd
 
         if cmd == 'scp':
             task_id = self._parse_task_id(self._get_target())
             info = manager.get_task_info(task_id)
 
-            assert info['builder'] == name, 'Invalid builder'
+            if info['builder'] != name:
+                raise ValueError, 'Invalid builder: %s' % name
 
             spec_id = info['spec_id']
             path = os.path.join(settings.INCOMING, str(spec_id), task_id)
@@ -65,7 +71,8 @@ class ScpServe(object):
             task_id, mode, files = self._parse_chmod_cmd()
             info = manager.get_task_info(task_id)
 
-            assert info['builder'] == name, 'Invalid builder'
+            if info['builder'] != name:
+                raise ValueError, 'Invalid builder: %s' % name
 
             spec_id = info['spec_id']
             path = os.path.join(settings.INCOMING, str(spec_id), task_id)
@@ -76,7 +83,8 @@ class ScpServe(object):
 
     def _handle_taskinit(self, worker_id):
         cmd = self.cmd.split()[0]
-        assert cmd == 'scp', 'Invalid command'
+        if cmd != 'scp':
+            raise ValueError, 'Invalid command: %s' % cmd
 
         spec_id = self._parse_spec_id(self._get_target())
         info = manager.get_spec_info(spec_id)
@@ -107,11 +115,13 @@ class ScpServe(object):
         task_id = None
         for fname in files:
             m = pf.match(fname)
-            assert m is not None, 'Invalid file name: %s' % fname
+            if m is None:
+                raise ValueError, 'Invalid file name: %s' % fname
 
             tid, fn = m.groups()
-            assert task_id is None or task_id == tid, \
-                   'Different task id: %s (%s)' % (task_id, fname)
+            if task_id is not None and task_id != tid:
+                raise ValueError, 'Different task id: %s (%s)' % \
+                                  (task_id, fname)
             task_id = tid
 
             items.append(fn)
@@ -142,7 +152,8 @@ class ScpServe(object):
     def _get_target(self):
         optlist, args = self._parse_scp()
 
-        assert len(args) == 1, 'Unable to get target'
+        if len(args) != 1:
+            raise ValueError, 'Unable to get target'
 
         return args[0]
 
