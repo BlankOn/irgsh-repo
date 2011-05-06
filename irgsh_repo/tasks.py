@@ -25,7 +25,8 @@ class RebuildRepo(Task):
     ignore_result = True
 
     def run(self, spec_id, package, version,
-            distribution, component, task_arch_list):
+            distribution, component, task_arch_list,
+            priority=None, section=None):
 
         version = version.split(':')[-1]
 
@@ -35,10 +36,15 @@ class RebuildRepo(Task):
             # Install source
             dsc = '%s_%s.dsc' % (package, version)
             dsc_file = os.path.join(settings.INCOMING, str(spec_id), 'source', dsc)
-            cmd = 'reprepro -VVV -b %s -C %s includedsc %s %s' % \
-                  (settings.REPO_DIR, component,
-                   distribution, dsc_file)
-            self.execute_cmd(cmd.split(), repo_log)
+            cmd = ['reprepro', '-VVV',
+                   '-b', settings.REPO_DIR,
+                   '-C', component]
+            if priority is not None:
+                cmd += ['-P', priority]
+            if section is not None:
+                cmd += ['-S', section]
+            cmd += ['includedsc', distribution, dsc_file]
+            self.execute_cmd(cmd, repo_log)
 
             # Add deb for each architecture
             for index, task_arch in enumerate(task_arch_list):
