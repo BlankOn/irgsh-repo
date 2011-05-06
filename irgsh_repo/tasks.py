@@ -26,7 +26,7 @@ class RebuildRepo(Task):
 
     def run(self, spec_id, package, version,
             distribution, component, task_arch_list,
-            priority=None, section=None):
+            section=None, priority=None):
 
         version = version.split(':')[-1]
 
