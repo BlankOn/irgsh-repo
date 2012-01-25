@@ -102,7 +102,7 @@ class RebuildRepo(Task):
             self.send_log(spec_id, repo_log)
 
     def is_repository_locked(self):
-        fname = os.path.join(settings.REPO_DIR, 'db', 'lock')
+        fname = os.path.join(settings.REPO_DIR, 'db', 'lockfile')
         return os.path.exists(fname)
 
     def wait_for_lock(self):
