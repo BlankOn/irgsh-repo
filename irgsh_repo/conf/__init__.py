@@ -27,6 +27,7 @@ CONFIG_MAPPING = {
         'repo-dir': 'REPO_DIR',
         'irgsh-upload-serve': 'IRGSH_UPLOAD_SERVE',
         'authorized-keys': 'AUTHORIZED_KEYS',
+        'busy-wait-duration': 'BUSY_WAIT_DURATION',
     },
     'queue': {
         'host': 'BROKER_HOST',
@@ -42,6 +43,7 @@ CONFIG_REQUIRED = {
 }
 CONFIG_TYPE_MAPPER = {
     'BROKER_PORT': int,
+    'BUSY_WAIT_DURATION': int,
     'ARCHITECTURES': lambda x: x.split()
 }
 

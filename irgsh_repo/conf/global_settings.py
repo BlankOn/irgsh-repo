@@ -10,3 +10,5 @@ SSL_KEY = None
 
 AUTHORIZED_KEYS = '~/.ssh/authorized_keys'
 
+BUSY_WAIT_DURATION = 300
+
