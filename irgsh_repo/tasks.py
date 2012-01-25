@@ -1,6 +1,7 @@
 import tempfile
 import os
 import gzip
+import time
 from subprocess import Popen, PIPE, STDOUT
 
 from celery.task import Task
@@ -27,6 +28,9 @@ class RebuildRepo(Task):
     def run(self, spec_id, package, version,
             distribution, component, task_arch_list,
             section=None, priority=None):
+
+        while self.is_repository_locked():
+            self.wait_for_lock()
 
         version = version.split(':')[-1]
 
@@ -96,6 +100,13 @@ class RebuildRepo(Task):
 
         finally:
             self.send_log(spec_id, repo_log)
+
+    def is_repository_locked(self):
+        fname = os.path.join(settings.REPO_DIR, 'db', 'lock')
+        return os.path.exists(fname)
+
+    def wait_for_lock(self):
+        time.sleep(settings.BUSY_WAIT_DURATION)
 
     def execute_cmd(self, cmd, repo_log):
         p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
